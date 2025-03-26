@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        // Définir l'URL du dépôt GitHub
+        GIT_REPO_URL = "https://github.com/username/repository.git"
+    }
+
+    stages {
+        stage('Cloner le dépôt') {
+            steps {
+                // Cloner le dépôt GitHub
+                git url: "${GIT_REPO_URL}", branch: 'main'
+            }
+        }
+
+        stage('Build du projet') {
+            steps {
+                // Exécuter la commande make build
+                sh 'make build'
+            }
+        }
+
+        stage('Tests du projet') {
+            steps {
+                // Exécuter la commande make test
+                sh 'make test'
+            }
+        }
+
+        stage('Déploiement avec Ansible') {
+            steps {
+                // Exécuter le Playbook Ansible pour le déploiement
+                sh 'ansible-playbook -i inventory.ini deploy.yml'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline exécuté avec succès!'
+        }
+        failure {
+            echo 'Le pipeline a échoué!'
+        }
+    }
+}
