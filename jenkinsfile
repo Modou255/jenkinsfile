@@ -1,47 +1,50 @@
 pipeline {
     agent any
-
+    
     environment {
-        // Définir l'URL du dépôt GitHub
-        GIT_REPO_URL = "https://github.com/Modou255/jenkinsfile.git"
+        CC = 'gcc'
+        CFLAGS = '-Wall'
     }
-
+    
     stages {
-        stage('Cloner le dépôt') {
+        stage('Checkout') {
             steps {
-                // Cloner le dépôt GitHub
-                git url: "${GIT_REPO_URL}", branch: 'main'
+                checkout scm
             }
         }
-
-        stage('Build du projet') {
+        
+        stage('Build') {
             steps {
-                // Exécuter la commande make build
                 sh 'make build'
             }
         }
-
-        stage('Tests du projet') {
+        
+        stage('Test') {
             steps {
-                // Exécuter la commande make test
                 sh 'make test'
             }
         }
-
-        stage('Déploiement avec Ansible') {
+        
+        stage('Clean') {
             steps {
-                // Exécuter le Playbook Ansible pour le déploiement
-                sh 'ansible-playbook -i inventory.ini deploy.yml'
+                sh 'make clean'
             }
         }
     }
-
+    
     post {
+        always {
+            cleanWs()
+        }
         success {
-            echo 'Pipeline exécuté avec succès!'
+            mail to: 'mamadoufall2023@gmail.com',
+                 subject: "Build Réussie - ${currentBuild.fullDisplayName}",
+                 body: "Le build ${env.BUILD_URL} a réussi"
         }
         failure {
-            echo 'Le pipeline a échoué!'
+            mail to: 'mamadoufall2023@gmail.com',
+                 subject: "Build Échouée - ${currentBuild.fullDisplayName}",
+                 body: "Le build ${env.BUILD_URL} a échoué"
         }
     }
 }
